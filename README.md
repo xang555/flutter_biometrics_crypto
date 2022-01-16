@@ -1,11 +1,5 @@
 # flutter_biometrics
 
-***Documentation is under contruction.***
-
-Flutter plugin which lets you to generate key pair and do cryptographic signing using biometric authentication.
-
-Heavily influenced by [local_auth](https://github.com/flutter/plugins/tree/master/packages/local_auth)
-
 ## Usage in Dart
 
 Import the relevant file:
