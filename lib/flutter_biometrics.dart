@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_biometrics/constants/method_names.dart';
 import 'package:flutter_biometrics/helpers/biometrics_type_mapper.dart';
 import 'package:flutter_biometrics/models/biometrics_type.dart';
-import 'package:meta/meta.dart';
 
 import 'dialog_messages.dart';
 
@@ -34,7 +33,6 @@ class FlutterBiometrics {
     showIOSErrorDialog = true,
     DialogMessages dialogMessages = const DialogMessages(),
   }) async {
-    assert(reason != null);
     final Map<String, Object> args = <String, Object>{
       'reason': reason,
       'useErrorDialogs': showIOSErrorDialog,
@@ -62,8 +60,6 @@ class FlutterBiometrics {
     showIOSErrorDialog = true,
     DialogMessages dialogMessages = const DialogMessages(),
   }) async {
-    assert(payload != null);
-    assert(reason != null);
     final Map<String, Object> args = <String, Object>{
       'payload': payload,
       'reason': reason,
@@ -78,7 +74,8 @@ class FlutterBiometrics {
   /// Returns if device supports any of the available biometric authorisation types
   ///
   /// Returns a [Future] boolean
-  Future<bool> get authAvailable async => (await getAvailableBiometricTypes()).isNotEmpty;
+  Future<bool> get authAvailable async =>
+      (await getAvailableBiometricTypes()).isNotEmpty;
 
   /// Returns a list of enrolled biometrics
   ///
@@ -87,7 +84,8 @@ class FlutterBiometrics {
   /// - BiometricType.fingerprint
   /// - BiometricType.iris (not yet implemented)
   Future<List<BiometricsType>> getAvailableBiometricTypes() async {
-    final List<String>? result = (await _channel.invokeListMethod<String>(MethodNames.availableBiometricTypes));
+    final List<String>? result = (await _channel
+        .invokeListMethod<String>(MethodNames.availableBiometricTypes));
 
     return BiometricsTypeMapper.mapFrom(list: result);
   }
