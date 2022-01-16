@@ -1,5 +1,10 @@
 # flutter_biometrics
 
+ implement biometric authentication with cryptographic
+
+
+> *Note: in development
+
 ## Usage in Dart
 
 Import the relevant file:
