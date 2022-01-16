@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 
 import 'package:flutter_biometrics/flutter_biometrics.dart';
@@ -35,18 +36,24 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> sign() async {
-    var biometrics = FlutterBiometrics();
-    String signature = await biometrics.sign(
-        payload: _payload,
-        reason: 'Please authenticate to sign specified payload');
+    try {
+      var biometrics = FlutterBiometrics();
+      String signature = await biometrics.sign(
+          payload: _payload,
+          reason: 'Please authenticate to sign specified payload');
 
-    print("------------> ${signature}");
+      print("------------> ${signature}");
 
-    setState(() {
-      _signature = signature;
-    });
+      setState(() {
+        _signature = signature;
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
+    } catch (e) {
+      if (e is PlatformException) {
+        print("-----> ${e.code}");
+      }
+    }
   }
 
   @override

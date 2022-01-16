@@ -30,7 +30,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin, ActivityAware {
   protected static String KEY_ALIAS = "biometric_key";
@@ -90,6 +89,7 @@ public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin
   }
   
 
+  // create sign key
   protected void createKeys(MethodCall call, final Result result) {
     if (!authInProgress.compareAndSet(false, true)) {
       result.error("auth_in_progress", "Authentication in progress", null);
@@ -122,7 +122,6 @@ public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin
                 .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
                 .setAlgorithmParameterSpec(new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4))
                 .setUserAuthenticationRequired(true)
-                .setInvalidatedByBiometricEnrollment(true)
                 .build();
 
         keyPairGenerator.initialize(keyGenParameterSpec);
@@ -134,31 +133,10 @@ public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin
         result.error("create_keys_error", "Error generating public private keys: " + e.getMessage(), null);
       }
     }
-
-    // AuthenticationHelper authenticationHelper = new AuthenticationHelper((FragmentActivity) this.activity, call,
-    //     new AuthenticationHelper.AuthCompletionHandler() {
-    //       @Override
-    //       public void onSuccess(CryptoObject cryptoObject) {
- 
-    //       }
-
-    //       @Override
-    //       public void onFailure() {
-    //         if (authInProgress.compareAndSet(true, false)) {
-    //           result.success(false);
-    //         }
-    //       }
-
-    //       @Override
-    //       public void onError(String code, String error) {
-    //         if (authInProgress.compareAndSet(true, false)) {
-    //           result.error(code, error, null);
-    //         }
-    //       }
-    //     });
-    // authenticationHelper.authenticate();
   }
 
+
+  // sign message
   protected void sign(final MethodCall call, final Result result) {
     if (!authInProgress.compareAndSet(false, true)) {
       result.error("auth_in_progress", "Authentication in progress", null);
