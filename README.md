@@ -17,11 +17,11 @@ Available methods:
 
 ```dart
 bool authAvailable =
-    await FlutterBiometrics().authAvailable();
+    await FlutterBiometrics().authAvailable;
 ```
 
 ```dart
-List<BiometricType> getAvailableBiometricTypes =
+List<BiometricsType> getAvailableBiometricTypes =
     await FlutterBiometrics().getAvailableBiometricTypes();
 ```
 
@@ -31,9 +31,13 @@ String publicKeyAsBase64 =
 ```
 
 ```dart
-bool signedPayloadAsBase64 =
+String signedPayloadAsBase64 =
     await FlutterBiometrics().sign(payload: 'base64string', reason: 'Please authenticate to sign payload');
 ```
+
+## verify digital signature
+
+- example for golang [sign_and_verify_test.go](https://gist.github.com/nilsmagnus/8cb1ff93b56f73126f65e22840cbc32b)
 
 ## Android Integration (taken from [local_auth](https://github.com/flutter/plugins/tree/master/packages/local_auth))
 
