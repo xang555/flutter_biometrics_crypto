@@ -49,26 +49,28 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
     
     private func createKeys(reason: String, result: @escaping FlutterResult) -> Void {
         let context = LAContext()
+
+        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
+           if let domainState = context.evaluatedPolicyDomainState {
+                       _ = KeyChain.save(key: "domainState", data: domainState.base64EncodedData())
+                   }
+
+            self.createAndStoreKeyPair(result:result)
+       }
         
-        if let domainState = context.evaluatedPolicyDomainState {
-            _ = KeyChain.save(key: "domainState", data: domainState.base64EncodedData())
-        }
-        
-        self.createAndStoreKeyPair(result:result)
-        
-//        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
-//            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: {(success, error) in
-//                if (success) {
-//                    if let domainState = context.evaluatedPolicyDomainState {
-//                        _ = KeyChain.save(key: "domainState", data: domainState.base64EncodedData())
-//                    }
-//
-//                    self.createAndStoreKeyPair(result:result)
-//                } else {
-//                    result(nil)
-//                }
-//            })
-//        }
+    //    if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
+    //        context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: reason, reply: {(success, error) in
+    //            if (success) {
+    //                if let domainState = context.evaluatedPolicyDomainState {
+    //                    _ = KeyChain.save(key: "domainState", data: domainState.base64EncodedData())
+    //                }
+
+    //                self.createAndStoreKeyPair(result:result)
+    //            } else {
+    //                result(nil)
+    //            }
+    //        })
+    //    }
     }
     
     private func sign(reason: String, payload: String, result: @escaping FlutterResult) -> Void {

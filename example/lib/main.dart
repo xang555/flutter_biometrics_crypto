@@ -22,17 +22,21 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> createKeys() async {
-    var biometrics = FlutterBiometrics();
-    String publicKey = await biometrics.createKeys(
-        reason: 'Please authenticate to create public/private key pair');
+    try {
+      var biometrics = FlutterBiometrics();
+      String publicKey = await biometrics.createKeys(
+          reason: 'Please authenticate to create public/private key pair');
 
-    print("------------> ${publicKey}");
+      print("------------> ${publicKey}");
 
-    setState(() {
-      _publicKey = publicKey;
-    });
+      setState(() {
+        _publicKey = publicKey;
+      });
 
-    if (!mounted) return;
+      if (!mounted) return;
+    } catch (e) {
+      print("error -----> ${e.code}");
+    }
   }
 
   Future<void> sign() async {
@@ -50,8 +54,9 @@ class _MyAppState extends State<MyApp> {
 
       if (!mounted) return;
     } catch (e) {
+      print("error -----> $e");
       if (e is PlatformException) {
-        print("-----> ${e.code}");
+        print("error -----> ${e.code}");
       }
     }
   }
