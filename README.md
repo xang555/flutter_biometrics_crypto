@@ -11,6 +11,7 @@ Import the relevant file:
 
 ```dart
 import 'package:flutter_biometrics/flutter_biometrics.dart';
+import 'package:flutter_biometrics/constants/algorithm.dart';
 ```
 
 Available methods:
@@ -27,12 +28,17 @@ List<BiometricsType> getAvailableBiometricTypes =
 
 ```dart
 String publicKeyAsBase64 =
-    await FlutterBiometrics().createKeys(reason: 'Please authenticate to generate keys');
+    await FlutterBiometrics().createKeys(
+        reason: 'Please authenticate to generate keys',
+        algorithm: Algorithm.ecdsa);
 ```
 
 ```dart
 String signedPayloadAsBase64 =
-    await FlutterBiometrics().sign(payload: 'base64string', reason: 'Please authenticate to sign payload');
+    await FlutterBiometrics().sign(
+        payload: 'base64string',
+        reason: 'Please authenticate to sign payload',
+        algorithm: Algorithm.ecdsa);
 ```
 
 ## verify digital signature

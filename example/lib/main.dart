@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 import 'package:flutter_biometrics/flutter_biometrics.dart';
+import 'package:flutter_biometrics/constants/algorithm.dart';
 
 void main() => runApp(MyApp());
 
@@ -15,6 +16,7 @@ class _MyAppState extends State<MyApp> {
   String _publicKey = 'Not retrieved/Not set';
   String _signature = 'Unknown';
   String _payload = 'Zmx1dHRlcl9iaW9tZXRyaWNz';
+  String _algorithm = Algorithm.ecdsa;
 
   @override
   void initState() {
@@ -25,7 +27,9 @@ class _MyAppState extends State<MyApp> {
     try {
       var biometrics = FlutterBiometrics();
       String publicKey = await biometrics.createKeys(
-          reason: 'Please authenticate to create public/private key pair');
+        reason: 'Please authenticate to create public/private key pair',
+        algorithm: _algorithm,
+      );
 
       print("------------> ${publicKey}");
 
@@ -35,7 +39,7 @@ class _MyAppState extends State<MyApp> {
 
       if (!mounted) return;
     } catch (e) {
-      print("error -----> ${e.code}");
+      print("error -----> ${e.toString()}");
     }
   }
 
@@ -43,8 +47,10 @@ class _MyAppState extends State<MyApp> {
     try {
       var biometrics = FlutterBiometrics();
       String signature = await biometrics.sign(
-          payload: _payload,
-          reason: 'Please authenticate to sign specified payload');
+        payload: _payload,
+        reason: 'Please authenticate to sign specified payload',
+        algorithm: _algorithm,
+      );
 
       print("------------> ${signature}");
 
@@ -67,7 +73,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('flutter_biometrics'),
+          title: const Text('flutter biometrics with cryptography'),
           backgroundColor: Colors.blueGrey,
         ),
         body: ListView(
@@ -76,14 +82,61 @@ class _MyAppState extends State<MyApp> {
               margin: EdgeInsets.only(top: 20.0),
               alignment: Alignment.center,
               child: Text(
-                "1. Generate a key pair",
+                "1. Select a algorithm",
+                style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.all(20.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text('ECDSA'),
+                      value: Algorithm.ecdsa,
+                      groupValue: _algorithm,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            _algorithm = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  SizedBox(width: 20.0),
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: const Text('RSA'),
+                      value: Algorithm.rsa,
+                      groupValue: _algorithm,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            _algorithm = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 20.0),
+              alignment: Alignment.center,
+              child: Text(
+                "2. Generate a key pair",
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
             ),
             Container(
               alignment: Alignment.center,
               margin: EdgeInsets.only(top: 20.0),
-              child: RaisedButton(
+              child: OutlinedButton(
                 onPressed: createKeys,
                 child: Text("Create keys"),
               ),
@@ -103,7 +156,7 @@ class _MyAppState extends State<MyApp> {
               margin: EdgeInsets.only(top: 20.0, bottom: 10.0),
               alignment: Alignment.center,
               child: Text(
-                "2. Provide a payload to sign",
+                "3. Provide a payload to sign",
                 style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
               ),
             ),
@@ -125,7 +178,7 @@ class _MyAppState extends State<MyApp> {
               ),
             ),
             Center(
-              child: RaisedButton(
+              child: OutlinedButton(
                 onPressed: sign,
                 child: Text("Sign '$_payload'"),
               ),

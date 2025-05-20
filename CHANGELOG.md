@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Optional RSA or ECDSA algorithms for key generation and signing
+
 ## 0.3.0
 
 * Migration to null-safety

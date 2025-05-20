@@ -22,4 +22,11 @@ public class Constants {
         final static String undefined = "undefined";
     }
 
+    final static class Algorithm {
+        private Algorithm() {}
+
+        final static String rsa = "rsa";
+        final static String ecdsa = "ecdsa";
+    }
+
 }
