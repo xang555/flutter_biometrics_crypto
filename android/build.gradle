@@ -8,7 +8,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.0.2'
+        classpath 'com.android.tools.build:gradle:7.4.2'
     }
 }
 
@@ -19,10 +19,12 @@ rootProject.allprojects {
     }
 }
 
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+}
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 34
 
     defaultConfig {
         minSdkVersion 23
@@ -34,7 +36,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.biometric:biometric:1.2.0-alpha04'
-    implementation "androidx.core:core:1.8.0-alpha02"
-    implementation "androidx.fragment:fragment:1.4.0"
+    implementation 'androidx.biometric:biometric:1.2.0'
+    implementation 'androidx.core:core:1.9.0'
+    implementation 'androidx.fragment:fragment:1.5.7'
 }

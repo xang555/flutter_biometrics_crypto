@@ -8,7 +8,7 @@ import 'package:flutter_biometrics/constants/algorithm.dart';
 
 import 'dialog_messages.dart';
 
-const String CHANNEL_NANME = 'flutter_biometrics';
+const String CHANNEL_NAME = 'flutter_biometrics';
 
 /// Heavily influenced by [local_auth]
 ///
@@ -16,7 +16,7 @@ const String CHANNEL_NANME = 'flutter_biometrics';
 ///
 /// You can use generated key pair to create a cryptographic signature
 class FlutterBiometrics {
-  static const MethodChannel _channel = const MethodChannel(CHANNEL_NANME);
+  static const MethodChannel _channel = MethodChannel(CHANNEL_NAME);
 
   /// Creates a key pair for signing using biometrics.
   ///
