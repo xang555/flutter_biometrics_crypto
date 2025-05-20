@@ -13,4 +13,9 @@ struct BiometricsConstants {
         static let none = "none"
         static let undefined = "undefined"
     }
+
+    struct Algorithm {
+        static let rsa = "rsa"
+        static let ecdsa = "ecdsa"
+    }
 }

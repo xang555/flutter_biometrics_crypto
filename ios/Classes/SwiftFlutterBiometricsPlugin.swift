@@ -20,7 +20,8 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
             
             if let myArgs = args as? [String: Any],
                let reason = myArgs["reason"] as? String {
-                self.createKeys(reason: reason, result: result)
+                let algorithm = myArgs["algorithm"] as? String ?? BiometricsConstants.Algorithm.ecdsa
+                self.createKeys(reason: reason, algorithm: algorithm, result: result)
             } else {
                 result("'reason' is required for method: (" + call.method + ")")
             }
@@ -34,7 +35,8 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
             if let myArgs = args as? [String: Any],
                let reason = myArgs["reason"] as? String,
                let payload = myArgs["payload"] as? String {
-                self.sign(reason: reason, payload: payload, result: result)
+                let algorithm = myArgs["algorithm"] as? String ?? BiometricsConstants.Algorithm.ecdsa
+                self.sign(reason: reason, payload: payload, algorithm: algorithm, result: result)
             } else {
                 result("'reason' and 'payload' are required for method: (" + call.method + ")")
             }
@@ -47,7 +49,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func createKeys(reason: String, result: @escaping FlutterResult) -> Void {
+    private func createKeys(reason: String, algorithm: String, result: @escaping FlutterResult) -> Void {
         let context = LAContext()
 
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
@@ -55,7 +57,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
                        _ = KeyChain.save(key: "domainState", data: domainState.base64EncodedData())
                    }
 
-            self.createAndStoreKeyPair(result:result)
+            self.createAndStoreKeyPair(algorithm: algorithm, result:result)
        }
         
     //    if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
@@ -73,7 +75,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
     //    }
     }
     
-    private func sign(reason: String, payload: String, result: @escaping FlutterResult) -> Void {
+    private func sign(reason: String, payload: String, algorithm: String, result: @escaping FlutterResult) -> Void {
         let context = LAContext()
         
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
@@ -95,10 +97,13 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         }
         
         let keyTag = self.getBiometricKeyTag()
+        let keyType = (algorithm == BiometricsConstants.Algorithm.rsa) ? kSecAttrKeyTypeRSA : kSecAttrKeyTypeECSECPrimeRandom
+        let signAlgorithm: SecKeyAlgorithm = (algorithm == BiometricsConstants.Algorithm.rsa) ? SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA256 : SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256
+
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+            kSecAttrKeyType as String: keyType,
             kSecReturnRef as String: true,
             kSecUseOperationPrompt as String: reason
         ] as [String : Any]
@@ -109,9 +114,9 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         
         if (status == errSecSuccess) {
             let privateKey = item as! SecKey
-            
+
             let decodedData = NSData.init(base64Encoded: payload, options: [])
-            let signature = SecKeyCreateSignature(privateKey, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA256, decodedData!, nil)
+            let signature = SecKeyCreateSignature(privateKey, signAlgorithm, decodedData!, nil)
             
             if (signature != nil) {
                 let signatureString = NSData(data: signature! as Data).base64EncodedString(options: [])
@@ -153,7 +158,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         result(biometrics)
     }
     
-    private func createAndStoreKeyPair(result: @escaping FlutterResult) -> Void {
+    private func createAndStoreKeyPair(algorithm: String, result: @escaping FlutterResult) -> Void {
         var sec: SecAccessControl?
         
         if #available(iOS 11.3, *) {
@@ -168,10 +173,12 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         }
         
         let keyTag = self.getBiometricKeyTag()
+        let keyType = (algorithm == BiometricsConstants.Algorithm.rsa) ? kSecAttrKeyTypeRSA : kSecAttrKeyTypeECSECPrimeRandom
+        let keySize = (algorithm == BiometricsConstants.Algorithm.rsa) ? 2048 : 256
         let query = [
             kSecClass as String: kSecClassKey,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
-            kSecAttrKeySizeInBits as String: 2048,
+            kSecAttrKeyType as String: keyType,
+            kSecAttrKeySizeInBits as String: keySize,
             kSecPrivateKeyAttrs as String: [
                 kSecAttrIsPermanent as String: true,
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
@@ -180,14 +187,14 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
             ]
         ] as [String : Any]
         
-        self.deleteBiometricKey()
+        self.deleteBiometricKey(algorithm: algorithm)
         
         let privateKey = SecKeyCreateRandomKey(query as CFDictionary, nil)
         
         if(privateKey != nil) {
             let publicKey = SecKeyCopyPublicKey(privateKey!)
             let publicKeyData = SecKeyCopyExternalRepresentation(publicKey!, nil)
-            let publicKeyDataWithHeader = self.dataByPrependingX509Header(publicKey: publicKeyData! as Data)
+            let publicKeyDataWithHeader = self.dataByPrependingX509Header(publicKey: publicKeyData! as Data, algorithm: algorithm)
             let publicKeyString = publicKeyDataWithHeader.base64EncodedString(options: [])
             result(publicKeyString);
         } else {
@@ -195,13 +202,15 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    private func deleteBiometricKey() -> OSStatus {
+    private func deleteBiometricKey(algorithm: String) -> OSStatus {
         let keyTag = self.getBiometricKeyTag()
-        
+
+        let keyType = (algorithm == BiometricsConstants.Algorithm.rsa) ? kSecAttrKeyTypeRSA : kSecAttrKeyTypeECSECPrimeRandom
+
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA
+            kSecAttrKeyType as String: keyType
         ] as [String : Any]
         
         return SecItemDelete(query as CFDictionary)
@@ -212,12 +221,21 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         return keyAlias.data(using: .utf8)!
     }
     
-    func dataByPrependingX509Header(publicKey: Data) -> Data {
+    func dataByPrependingX509Header(publicKey: Data, algorithm: String) -> Data {
         let result = NSMutableData()
-        
+
         let encodingLength: Int = (publicKey.count + 1).encodedOctets().count
-        let OID: [CUnsignedChar] = [0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86,
-                                    0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00]
+        let OID: [CUnsignedChar] = {
+            if algorithm == BiometricsConstants.Algorithm.rsa {
+                return [0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86,
+                        0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00]
+            }
+            return [
+                0x30, 0x13,
+                0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
+                0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07
+            ]
+        }()
         
         var builder: [CUnsignedChar] = []
         
@@ -243,12 +261,13 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         return result as Data
     }
     
-    func biometricKeyExists() -> Bool {
+    func biometricKeyExists(algorithm: String) -> Bool {
         let keyTag = self.getBiometricKeyTag()
+        let keyType = (algorithm == BiometricsConstants.Algorithm.rsa) ? kSecAttrKeyTypeRSA : kSecAttrKeyTypeECSECPrimeRandom
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA
+            kSecAttrKeyType as String: keyType
         ] as [String : Any]
         
         let status = SecItemCopyMatching(query as CFDictionary, nil)

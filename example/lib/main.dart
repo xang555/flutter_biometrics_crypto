@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 
 import 'package:flutter_biometrics/flutter_biometrics.dart';
+import 'package:flutter_biometrics/constants/algorithm.dart';
 
 void main() => runApp(MyApp());
 
@@ -25,7 +26,8 @@ class _MyAppState extends State<MyApp> {
     try {
       var biometrics = FlutterBiometrics();
       String publicKey = await biometrics.createKeys(
-          reason: 'Please authenticate to create public/private key pair');
+          reason: 'Please authenticate to create public/private key pair',
+          algorithm: Algorithm.ecdsa);
 
       print("------------> ${publicKey}");
 
@@ -44,7 +46,8 @@ class _MyAppState extends State<MyApp> {
       var biometrics = FlutterBiometrics();
       String signature = await biometrics.sign(
           payload: _payload,
-          reason: 'Please authenticate to sign specified payload');
+          reason: 'Please authenticate to sign specified payload',
+          algorithm: Algorithm.ecdsa);
 
       print("------------> ${signature}");
 

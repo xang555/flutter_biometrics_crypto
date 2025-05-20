@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_biometrics/constants/method_names.dart';
 import 'package:flutter_biometrics/helpers/biometrics_type_mapper.dart';
 import 'package:flutter_biometrics/models/biometrics_type.dart';
+import 'package:flutter_biometrics/constants/algorithm.dart';
 
 import 'dialog_messages.dart';
 
@@ -17,7 +18,9 @@ const String CHANNEL_NANME = 'flutter_biometrics';
 class FlutterBiometrics {
   static const MethodChannel _channel = const MethodChannel(CHANNEL_NANME);
 
-  /// Creates SHA256 RSA key pair for signing using biometrics
+  /// Creates a key pair for signing using biometrics.
+  ///
+  /// [algorithm] may be [Algorithm.rsa] or [Algorithm.ecdsa] (default).
   ///
   /// Will create a new keypair each time method is called
   ///
@@ -30,12 +33,14 @@ class FlutterBiometrics {
   /// Provide [dialogMessages] if you want to customize messages for the auth dialog
   Future<dynamic> createKeys({
     required String reason,
+    String algorithm = Algorithm.ecdsa,
     showIOSErrorDialog = true,
     DialogMessages dialogMessages = const DialogMessages(),
   }) async {
     final Map<String, Object> args = <String, Object>{
       'reason': reason,
       'useErrorDialogs': showIOSErrorDialog,
+      'algorithm': algorithm,
     };
 
     args.addAll(dialogMessages.messages);
@@ -51,12 +56,15 @@ class FlutterBiometrics {
   ///
   /// [reason] is the message to show when user will be prompted to authenticate using biometrics
   ///
+  /// [algorithm] must match the algorithm used when generating the keys.
+  ///
   /// [showIOSErrorDialog] is used on iOS side to decide if error dialog should be displayed
   ///
   /// Provide [dialogMessages] if you want to customize messages for the auth dialog
   Future<dynamic> sign({
     required String payload,
     required String reason,
+    String algorithm = Algorithm.ecdsa,
     showIOSErrorDialog = true,
     DialogMessages dialogMessages = const DialogMessages(),
   }) async {
@@ -64,6 +72,7 @@ class FlutterBiometrics {
       'payload': payload,
       'reason': reason,
       'useErrorDialogs': showIOSErrorDialog,
+      'algorithm': algorithm,
     };
 
     args.addAll(dialogMessages.messages);
