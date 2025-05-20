@@ -17,7 +17,7 @@ const String CHANNEL_NANME = 'flutter_biometrics';
 class FlutterBiometrics {
   static const MethodChannel _channel = const MethodChannel(CHANNEL_NANME);
 
-  /// Creates SHA256 RSA key pair for signing using biometrics
+  /// Creates SHA256 ECDSA key pair (secp256r1) for signing using biometrics
   ///
   /// Will create a new keypair each time method is called
   ///

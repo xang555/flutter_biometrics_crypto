@@ -17,7 +17,7 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
-import java.security.spec.RSAKeyGenParameterSpec;
+import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -114,13 +114,13 @@ public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin
       try {
         deleteBiometricKey();
 
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_RSA,
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KeyProperties.KEY_ALGORITHM_EC,
             KEYSTORE);
 
         KeyGenParameterSpec keyGenParameterSpec = new KeyGenParameterSpec.Builder(KEY_ALIAS,
-            KeyProperties.PURPOSE_SIGN).setDigests(KeyProperties.DIGEST_SHA256)
-                .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
-                .setAlgorithmParameterSpec(new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4))
+            KeyProperties.PURPOSE_SIGN)
+                .setDigests(KeyProperties.DIGEST_SHA256)
+                .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
                 .setUserAuthenticationRequired(true)
                 .build();
 
@@ -170,7 +170,7 @@ public class FlutterBiometricsPlugin implements MethodCallHandler, FlutterPlugin
 
       PrivateKey privateKey = (PrivateKey) keyStore.getKey(KEY_ALIAS, null);
 
-      Signature signature = Signature.getInstance("SHA256withRSA");
+      Signature signature = Signature.getInstance("SHA256withECDSA");
       signature.initSign(privateKey);
 
       CryptoObject cryptoObject = new CryptoObject(signature);

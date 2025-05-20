@@ -98,7 +98,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecReturnRef as String: true,
             kSecUseOperationPrompt as String: reason
         ] as [String : Any]
@@ -111,7 +111,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
             let privateKey = item as! SecKey
             
             let decodedData = NSData.init(base64Encoded: payload, options: [])
-            let signature = SecKeyCreateSignature(privateKey, SecKeyAlgorithm.rsaSignatureMessagePKCS1v15SHA256, decodedData!, nil)
+            let signature = SecKeyCreateSignature(privateKey, SecKeyAlgorithm.ecdsaSignatureMessageX962SHA256, decodedData!, nil)
             
             if (signature != nil) {
                 let signatureString = NSData(data: signature! as Data).base64EncodedString(options: [])
@@ -170,8 +170,8 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         let keyTag = self.getBiometricKeyTag()
         let query = [
             kSecClass as String: kSecClassKey,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
-            kSecAttrKeySizeInBits as String: 2048,
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
+            kSecAttrKeySizeInBits as String: 256,
             kSecPrivateKeyAttrs as String: [
                 kSecAttrIsPermanent as String: true,
                 kSecUseAuthenticationUI as String: kSecUseAuthenticationUIAllow,
@@ -201,7 +201,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom
         ] as [String : Any]
         
         return SecItemDelete(query as CFDictionary)
@@ -216,8 +216,11 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         let result = NSMutableData()
         
         let encodingLength: Int = (publicKey.count + 1).encodedOctets().count
-        let OID: [CUnsignedChar] = [0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86,
-                                    0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00]
+        let OID: [CUnsignedChar] = [
+            0x30, 0x13,
+            0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01,
+            0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07
+        ]
         
         var builder: [CUnsignedChar] = []
         
@@ -248,7 +251,7 @@ public class SwiftFlutterBiometricsPlugin: NSObject, FlutterPlugin {
         let query = [
             kSecClass as String: kSecClassKey,
             kSecAttrApplicationTag as String: keyTag,
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA
+            kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom
         ] as [String : Any]
         
         let status = SecItemCopyMatching(query as CFDictionary, nil)
